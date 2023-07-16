@@ -89,10 +89,83 @@ const init = () => {
     worker.onmessage = draw
 }
 
-canvas.addEventListener('dblclick', e => {
+
+
+const getRelativePoint = (pixel, length, set) => set.start + (pixel / length) * (set.end - set.start)
+
+init()
+
+
+// Function to check if a point is a Misiurewicz point
+const isMisiurewiczPoint = (x, y, maxIterations) => {
+  let zx = x;
+  let zy = y;
+
+  for (let i = 0; i < maxIterations; i++) {
+    const zx2 = zx * zx;
+    const zy2 = zy * zy;
+
+    // Check if the point diverges
+    if (zx2 + zy2 > 4) {
+      return false;
+    }
+
+    // Calculate the next iteration
+    const nextZx = zx2 - zy2 + x;
+    const nextZy = 2 * zx * zy + y;
+
+    zx = nextZx;
+    zy = nextZy;
+  }
+
+  return true;
+};
+
+// Function to calculate Misiurewicz points within a specified region
+const calculateMisiurewiczPoints = (xStart, xEnd, yStart, yEnd, maxIterations) => {
+  const misiurewiczPoints = [];
+
+  for (let x = xStart; x <= xEnd; x += 0.01) {
+    for (let y = yStart; y <= yEnd; y += 0.01) {
+      if (isMisiurewiczPoint(x, y, maxIterations)) {
+        misiurewiczPoints.push({pageX: x, pageY:y });
+      }
+    }
+  }
+
+  return misiurewiczPoints;
+};
+
+// ... Rest of the code ...
+var misiurewiczPoints;
+const calculateZoomPoint = () => {
+  // Calculate Misiurewicz points within the specified region
+ misiurewiczPoints = calculateMisiurewiczPoints(REAL_SET.start, REAL_SET.end, IMAGINARY_SET.start, IMAGINARY_SET.end, 100);
+
+
+ 
+};
+
+ var times=0;
+var zoomX=0;
+var zoomY=0;
+var ct=0;
+   calculateZoomPoint();
+
+
+
+
+   setInterval(function(){
+
     const zfw = (WIDTH * ZOOM_FACTOR)
     const zfh = (HEIGHT * ZOOM_FACTOR)
-
+var e= misiurewiczPoints[ct];
+console.log( "misiurewiczPoints")
+console.log( e)
+console.log( REAL_SET)
+console.log(    IMAGINARY_SET)
+ 
+ct++;
     REAL_SET = {
         start: getRelativePoint(e.pageX - canvas.offsetLeft - zfw, WIDTH, REAL_SET),
         end: getRelativePoint(e.pageX - canvas.offsetLeft + zfw, WIDTH, REAL_SET)
@@ -103,8 +176,4 @@ canvas.addEventListener('dblclick', e => {
     }
 
     init()
-})
-
-const getRelativePoint = (pixel, length, set) => set.start + (pixel / length) * (set.end - set.start)
-
-init()
+},5000)
